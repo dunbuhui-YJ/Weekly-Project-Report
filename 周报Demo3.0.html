@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Digital Operation Platform · 项目甘特图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 项目卡片 */
+        .project-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .project-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #1e293b 0%, #2d3a4e 100%);
+            color: white;
+        }
+
+        .project-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-leader {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-status {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            background: #10b981;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* 模块样式 */
+        .detail-module {
+            margin: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: white;
+        }
+
+        .module-header {
+            background: #f8fafc;
+            padding: 0.8rem 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #eef2f6;
+        }
+
+        .module-header:hover {
+            background: #f1f5f9;
+        }
+
+        .module-content {
+            padding: 1rem;
+            border-top: 1px solid #eef2f6;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* 甘特图容器 */
+        .gantt-container {
+            background: #f9fafb;
+            padding: 0.8rem;
+            border-radius: 0.75rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .gantt-task {
+            margin: 1rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            flex-wrap: nowrap;
+        }
+
+        .gantt-task-info {
+            width: 280px;
+            flex-shrink: 0;
+            background: white;
+            padding: 0.6rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .gantt-task-info strong {
+            font-size: 0.8rem;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .gantt-task-info .owner {
+            color: #3b82f6;
+            font-weight: 500;
+            margin: 0.2rem 0;
+        }
+
+        .gantt-task-info .remark {
+            color: #5b6e8c;
+            font-size: 0.7rem;
+            word-break: break-word;
+            margin: 0.2rem 0;
+        }
+
+        .gantt-task-info .status {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            margin-right: 0.4rem;
+        }
+
+        .status-progress { background: #fef3c7; color: #b45309; }
+        .status-notstarted { background: #fee2e2; color: #b91c1c; }
+        .status-done { background: #d1fae5; color: #065f46; }
+
+        .gantt-task-info .date-range {
+            font-size: 0.7rem;
+            color: #475569;
+            margin-top: 0.2rem;
+        }
+
+        .gantt-bar-container {
+            flex: 1;
+            background: #e2e8f0;
+            border-radius: 6px;
+            position: relative;
+            height: 42px;
+            margin-top: 0.2rem;
+        }
+
+        .gantt-bar {
+            background: #3b82f6;
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 6px;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        /* 新增：当前进度下的表格 */
+        .progress-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.8rem;
+            font-size: 0.8rem;
+            background: #f9fafb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        .progress-table th, .progress-table td {
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+            vertical-align: top;
+        }
+        .progress-table th {
+            background: #eef2ff;
+            font-weight: 600;
+            width: 100px;
+        }
+        .progress-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 干系人表格 */
+        .stakeholder-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .stakeholder-table th, .stakeholder-table td {
+            text-align: left;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .stakeholder-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .gantt-task-info {
+                width: 240px;
+            }
+            .project-name {
+                font-size: 1.3rem;
+            }
+            .progress-table th, .progress-table td {
+                padding: 0.5rem 0.3rem;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="project-card">
+        <!-- 项目头部（负责人已修改） -->
+        <div class="project-header">
+            <div class="project-name">🏢 Digital Operation Platform</div>
+            <div class="project-leader">项目负责人：Caroline Yu, Zi Yan BA</div>
+            <div class="project-status">进行中 · In Progress</div>
+        </div>
+
+        <!-- 项目背景模块 -->
+        <div class="detail-module" id="bg-module">
+            <div class="module-header" onclick="toggleModule('bg-content')">
+                <span>📄 项目背景</span>
+                <span>▼</span>
+            </div>
+            <div id="bg-content" class="module-content">
+                <p>随着数字化进程的深入及业务触点的多元化发展，用户旅程已横跨APP、小程序、Web/H5、公众号等渠道。现有的数据采集渠道和范围及应用需支撑业务多渠道精细化运营需求。因此，本项目旨在构建全端统一、高效、可扩展的埋点采集与可视化分析运营平台，实现用户行为全链路数据闭环，赋能业务精细化运营。</p>
+            </div>
+        </div>
+
+        <!-- 项目干系人模块 -->
+        <div class="detail-module" id="stakeholder-module">
+            <div class="module-header" onclick="toggleModule('stakeholder-content')">
+                <span>👥 项目干系人</span>
+                <span>▼</span>
+            </div>
+            <div id="stakeholder-content" class="module-content">
+                <table class="stakeholder-table">
+                    <thead>
+                        <tr><th>Name</th><th>Role</th><th>E-mail</th>  </>
+                    </thead>
+                    <tbody>
+                        <tr><td>Soo Mei</td><td>PM</td><td>soo.mei@company.com</td> </tr>
+                        <tr><td>Eric Qin</td><td>PM</td><td>eric.qin@company.com</td> </tr>
+                        <tr><td>Linda Wang</td><td>Business</td><td>linda.wang@company.com</td> </tr>
+                        <tr><td>Zi Yan Ba</td><td>Business</td><td>ziyan.ba@company.com</td> </tr>
+                        <tr><td>Caroline Yu</td><td>Business</td><td>caroline.yu@company.com</td> </tr>
+                        <tr><td>Michael QU</td><td>IT</td><td>michael.qu@company.com</td> </tr>
+                        <tr><td>Marry Zhang</td><td>Buyer</td><td>marry.zhang@company.com</td> </tr>
+                        <tr><td>Miko Shen</td><td>Case Manager</td><td>miko.shen@company.com</td> </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 甘特图模块（无下方表格） -->
+        <div class="detail-module" id="gantt-module">
+            <div class="module-header" onclick="toggleModule('gantt-content')">
+                <span>📅 项目时间表（甘特图）</span>
+                <span>▼</span>
+            </div>
+            <div id="gantt-content" class="module-content">
+                <div id="gantt-container" class="gantt-container"></div>
+            </div>
+        </div>
+
+        <!-- Week's Update 模块（当前进度 + 新增表格） -->
+        <div class="detail-module" id="update-module">
+            <div class="module-header" onclick="toggleModule('update-content')">
+                <span>📌 Week's Update</span>
+                <span>▼</span>
+            </div>
+            <div id="update-content" class="module-content">
+                <p><strong>📍 当前进度：</strong> RFP Approval（BIZ侧已完成审批，buyer侧待procurement老板审批）</p>
+                <!-- 新增：图片中的表格 -->
+                <table class="progress-table">
+                    <thead>
+                        <tr><th>日期</th><th>事项</th> </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>3月16日</td><td>IT确认资源：Tech is aligned. We will follow-up DOP (HBCN instance)</td> </tr>
+                        <tr><td>3月17日</td><td>Biz侧基于已提供的版本，更新并确认Tendorscoring</td> </tr>
+                        <tr><td>3月18日</td><td>Biz侧基于已提供的版本，更新并和各需求方确认具体RFP内容</td> </tr>
+                        <tr><td>3月19日</td><td>IT侧准备IT需求内容+IT打分表</td> </tr>
+                        <tr><td>3月20日</td><td>会议沟通对齐+汇总BIZ+IT需求说明+打分表提交至Buyer</td> </tr>
+			<tr><td>3月25日</td><td>供应商完成NDA；Biz侧完成RFP Approval</td> </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 其他子模块 -->
+        <div class="detail-module" id="todo-module">
+            <div class="module-header" onclick="toggleModule('todo-content')">
+                <span>✅ Todo</span>
+                <span>▼</span>
+            </div>
+            <div id="todo-content" class="module-content">
+                <p>1. RFP发标（RFP briefing & Send RFP invitation to potential suppliers）,启动Q&A from potential suppliers<br>2. 收集整理potential suppliers的回标内容，与IT讨论及预评估<br>3. 协同IT侧提前了解现有系统情况，support IT评估系统切换及数据承接solution。<br>4.Riskflo系统即将demise，APPian系统即将上线，完成相关培训并提前学习相关流程（Archer环节之一）</p>
+            </div>
+        </div>
+
+        <div class="detail-module" id="risk-module">
+            <div class="module-header" onclick="toggleModule('risk-content')">
+                <span>⚠️ Risk/Pending decisions</span>
+                <span>▼</span>
+            </div>
+            <div id="risk-content" class="module-content">
+                <p>● 最终vendor的选定，依赖于各vendor的报价、方案及HBCN Internal IT的报价。由于...</p>
+            </div>
+        </div>
+
+        <div class="detail-module" id="support-module">
+            <div class="module-header" onclick="toggleModule('support-content')">
+                <span>🤝 Support</span>
+                <span>▼</span>
+            </div>
+            <div id="support-content" class="module-content">
+                <p>目前IT侧仅Michael QU在支持项目，后续IT执行侧，开发资源/测试资源需尽快确认。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 甘特图数据（完整任务列表，来源于之前图片）
+    const tasks = [
+        { name: "Requirement Identification (both business and IT)", start: "1-Mar", end: "19-Mar", owner: "Business + IT (Caroline + IT)", remark: "Business requirements need further refinement (by Caroline); IT requirement pending for confirmation of IT ownership", status: "Done" },
+        { name: "Supplier registration in Coupa", start: "1-Mar", end: "16-Mar", owner: "Buyer (Marry)", remark: "Have registered in the system, pending for approval", status: "Done" },
+        { name: "NDA signing by Suppliers", start: "1-Mar", end: "27-Mar", owner: "Buyer (Marry)", remark: "We have identified 3 suppliers. 2 have signed the NDA. Pending 1 supplier who has some queries on the clauses and this is being discussed with Legal. Target to close up by end-Mar", status: "Done" },
+        { name: "Preparation of tender evaluation and scoring template", start: "1-Mar", end: "19-Mar", owner: "Business + IT (Caroline + IT)", remark: "Business have drafted a copy based on their requirement; IT side pending for confirmation of IT ownership", status: "Done" },
+        { name: "Supplier sanction and non-sanction check", start: "1-Mar", end: "23-Mar", owner: "Third party", remark: "Marry to double check", status: "Done" },
+        { name: "Identify potential supplier list", start: "1-Mar", end: "25-Mar", owner: "Buyer + Business (Marry + Caroline)", remark: "We have identified 3 suppliers at this point, pending for the final supplier to sign the NDA to confirm and finalize the list for RFP. If the final supplier is unable to come into agreement with HSBC legal team on the clauses in NDA form, we will need to go through special approval to proceed with only 2 suppliers", status: "Done" },
+        { name: "RFP document preparation", start: "11-Mar", end: "23-Mar", owner: "Buyer (Marry)", remark: "#1 & #4", status: "Done" },
+        { name: "RFP document approval", start: "24-Mar", end: "27-Mar", owner: "CM + Project Lead (Caroline + Soo Mei)", remark: "Approval required from Business and Procurement team", status: "In Progress" },
+        { name: "RFP briefing & Send RFP invitation", start: "30-Mar", end: "30-Mar", owner: "Buyer (Marry)", remark: "", status: "Not Started" },
+        { name: "Q&A from potential suppliers", start: "30-Mar", end: "7-Apr", owner: "Buyer + Business (Marry + Caroline + IT)", remark: "", status: "Not Started" },
+        { name: "RFP response from suppliers", start: "30-Mar", end: "7-Apr", owner: "Suppliers", remark: "", status: "Not Started" },
+        { name: "Supplier presentation", start: "8-Apr", end: "9-Apr", owner: "Buyer + Business (Marry + Caroline + IT)", remark: "", status: "Not Started" },
+        { name: "Tender evaluation & Scoring", start: "9-Apr", end: "13-Apr", owner: "Business + IT (Caroline + IT)", remark: "", status: "Not Started" },
+        { name: "Price negotiation", start: "14-Apr", end: "14-Apr", owner: "Buyer (Marry)", remark: "", status: "Not Started" },
+        { name: "Supplier recommendation", start: "15-Apr", end: "15-Apr", owner: "Buyer + Business (Marry + Caroline + IT)", remark: "", status: "Not Started" },
+        { name: "Supplier approval by Business and Procurement", start: "16-Apr", end: "21-Apr", owner: "Business + Procurement (Caroline)", remark: "", status: "Not Started" },
+        { name: "Draft Contract", start: "22-Apr", end: "15-May", owner: "Buyer + Business + IT (Marry + Caroline + IT)", remark: "", status: "Not Started" },
+        { name: "Contract review by Legal team", start: "18-May", end: "25-May", owner: "HSBC Legal", remark: "", status: "Not Started" },
+        { name: "Project and Engagement Creation (One TPEM)", start: "22-Apr", end: "22-Apr", owner: "Buyer (Marry)", remark: "Similar to Archer Engagement", status: "Not Started" },
+        { name: "One TPEM/Archer Process + Approval", start: "22-Apr", end: "20-Jun", owner: "Case Mrg + TPEM + IT (Miko + Caroline + IT)", remark: "Estimate around 2-3 months to completion of One TPEM process + approval", status: "Not Started" },
+        { name: "IRQ & MA", start: "22-Apr", end: "24-Apr", owner: "", remark: "To be completed with Business + IT", status: "Not Started" },
+        { name: "RRQ", start: "27-Apr", end: "15-May", owner: "", remark: "Based on IRQ and MA, RRQ will be generated and to be sent to Supplier for answer. Roughly 14 working days", status: "Not Started" },
+        { name: "Tasks created based on IRQ and RRQ", start: "27-Apr", end: "20-Jun", owner: "", remark: "Tasks could involve Data Visa, Cybersecurity Assessment, EHC, Riskflo, CRP, AP-ABC, AP-TAX, RCMM, NNS, etc which take up around 2-3 months to complete. Tasks are dependent on the IRQ and RRQ result. We can kick start the tasks created from IRQ first while waiting for RRQ", status: "Not Started" },
+        { name: "VOF approval", start: "20-Jun", end: "30-Jun", owner: "Business (Caroline)", remark: "Tentatively targeting for Jun Forum", status: "Not Started" },
+        { name: "System tasks closure", start: "1-Jul", end: "1-Jul", owner: "Buyer (Marry)", remark: "#21", status: "Not Started" },
+        { name: "Contract signing with Supplier", start: "1-Jul", end: "3-Jul", owner: "Project Team (Soo Mei)", remark: "#20", status: "Not Started" },
+        { name: "Handover from Buyer to TPEM", start: "6-Jul", end: "6-Jul", owner: "Buyer (Marry)", remark: "", status: "Not Started" },
+        { name: "Requirement Gathering & Finalization", start: "23-Jun", end: "30-Jun", owner: "Business + IT (Caroline + IT)", remark: "", status: "Not Started" },
+        { name: "Vendor Development", start: "1-Jul", end: "14-Aug", owner: "Vendor", remark: "", status: "Not Started" },
+        { name: "Testing", start: "17-Aug", end: "4-Sep", owner: "Business + IT (Caroline + IT)", remark: "", status: "Not Started" }
+    ];
+
+    // 去重
+    const uniqueTasks = [];
+    const nameSet = new Set();
+    for (let t of tasks) {
+        if (!nameSet.has(t.name)) {
+            nameSet.add(t.name);
+            uniqueTasks.push(t);
+        }
+    }
+
+    // 日期解析
+    function parseDate(dateStr) {
+        const months = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+        const parts = dateStr.split('-');
+        const day = parseInt(parts[0]);
+        const month = months[parts[1]];
+        return new Date(2024, month, day);
+    }
+
+    // 格式化中文日期
+    function formatChineseDate(dateStr) {
+        const months = { Jan:"1", Feb:"2", Mar:"3", Apr:"4", May:"5", Jun:"6", Jul:"7", Aug:"8", Sep:"9", Oct:"10", Nov:"11", Dec:"12" };
+        const parts = dateStr.split('-');
+        const day = parseInt(parts[0]);
+        const month = months[parts[1]];
+        return `${month}月${day}日`;
+    }
+
+    // 计算全局时间范围
+    let minDate = parseDate("1-Mar");
+    let maxDate = parseDate("4-Sep");
+    uniqueTasks.forEach(t => {
+        let start = parseDate(t.start);
+        let end = parseDate(t.end);
+        if (start < minDate) minDate = start;
+        if (end > maxDate) maxDate = end;
+    });
+    const totalDuration = Math.ceil((maxDate - minDate) / (1000 * 3600 * 24)) + 1;
+
+    // 渲染甘特图
+    function renderGantt() {
+        const container = document.getElementById('gantt-container');
+        if (!container) return;
+        let html = '';
+        for (let task of uniqueTasks) {
+            const start = parseDate(task.start);
+            const end = parseDate(task.end);
+            const startOffset = Math.floor((start - minDate) / (1000 * 3600 * 24));
+            const duration = Math.floor((end - start) / (1000 * 3600 * 24)) + 1;
+            const startPercent = (startOffset / totalDuration) * 100;
+            const widthPercent = (duration / totalDuration) * 100;
+            let statusClass = "status-notstarted";
+            let statusText = "未开始";
+            if (task.status === "Done") { statusClass = "status-done"; statusText = "已完成"; }
+            else if (task.status === "In Progress") { statusClass = "status-progress"; statusText = "进行中"; }
+            const dateRange = `${formatChineseDate(task.start)} - ${formatChineseDate(task.end)}`;
+            const ownerHtml = task.owner ? `<div class="owner">👤 负责人：${task.owner}</div>` : '';
+            const remarkHtml = task.remark ? `<div class="remark">📌 备注：${task.remark}</div>` : '';
+
+            html += `
+                <div class="gantt-task">
+                    <div class="gantt-task-info">
+                        <strong>${task.name}</strong>
+                        <div><span class="status ${statusClass}">${statusText}</span> <span class="date-range">📅 ${dateRange}</span></div>
+                        ${ownerHtml}
+                        ${remarkHtml}
+                    </div>
+                    <div class="gantt-bar-container">
+                        <div class="gantt-bar" style="width: ${widthPercent}%; margin-left: ${startPercent}%; background: ${task.status === 'In Progress' ? '#f59e0b' : (task.status === 'Done' ? '#10b981' : '#3b82f6')};" title="${task.name}：${dateRange}，${duration}天">
+                            ${duration}天
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    // 模块折叠/展开
+    function toggleModule(contentId) {
+        const content = document.getElementById(contentId);
+        const header = content.previousElementSibling;
+        const arrow = header.querySelector('span:last-child');
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            arrow.textContent = '▼';
+        } else {
+            content.style.display = 'none';
+            arrow.textContent = '▶';
+        }
+    }
+
+    window.onload = () => {
+        renderGantt();
+        // 确保所有模块内容可见
+        const contents = document.querySelectorAll('.module-content');
+        contents.forEach(c => c.style.display = 'block');
+    };
+</script>
+</body>
+</html>
